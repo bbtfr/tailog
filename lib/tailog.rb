@@ -12,6 +12,7 @@ class File
     begin
       seek(idx)
       chunk = read(buffer)
+      break unless chunk
       lines += chunk.count("\n")
       chunks.unshift chunk
       idx -= buffer

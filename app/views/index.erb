@@ -22,6 +22,10 @@
     p:hover {
       background: #EEE;
     }
+
+    a {
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -90,14 +94,27 @@
                   $(data).appendTo($content);
                 }
               });
-            }, 1000);
+            }, 3000);
           </script>
 
         <% end %>
 
       <% rescue => error %>
-        <div class="alert alert-danger"><%= h error.message %></div>
+        <div class="alert alert-danger">
+          <h4><%= h error.class %>: <%= h error.message %></h4>
+          <% error.backtrace.each do |backtrace| %>
+            <%= h backtrace %><br>
+          <% end %>
+        </div>
       <% end %>
+
+    <% else %>
+      <div id="content" class="monospace">
+        <% Dir[File.join Tailog.log_path, '**/*.log'].each do |file| %>
+          <% relative_file = Pathname.new(file).relative_path_from(Pathname.new(Tailog.log_path)) %>
+          <a href="?file=<%= relative_file %>"><%= file %></a>
+        <% end %>
+      </div>
     <% end %>
 
   </div> <!-- /container -->
