@@ -5,7 +5,7 @@ class File
 
   def tail(n)
     buffer = 1024
-    idx = (size - buffer).abs
+    idx = size > buffer ? size - buffer : 0
     chunks = []
     lines = 0
 
@@ -16,12 +16,9 @@ class File
       lines += chunk.count("\n")
       chunks.unshift chunk
       idx -= buffer
-    end while lines < ( n + 1 ) && pos != 0
+    end while lines < ( n + 1 ) && idx >= 0
 
-    tail_of_file = chunks.join('')
-    ary = tail_of_file.split(/\n/)
-    lines_to_return = ary[ ary.size - n, ary.size - 1 ]
-
+    chunks.join('').split(/\n/).last(n)
   end
 end
 
