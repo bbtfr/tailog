@@ -1,0 +1,15 @@
+<% begin %>
+  <% file_path = File.join Tailog.log_path, params[:file] %>
+  <% File.open file_path do |file| %>
+    <% file_size = file.size %>
+    <% file.seek params[:seek].to_i %>
+    <% file.each_line do |line| %>
+      <p><%= h line %></p>
+    <% end %>
+    <script type="text/javascript">
+      window.fileSize = <%= file_size %>;
+    </script>
+  <% end %>
+<% rescue => error %>
+  <div class="alert alert-danger"><%= h error.message %></div>
+<% end %>

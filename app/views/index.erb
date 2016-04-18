@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tailog</title>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap.min.css">
+  <style type="text/css">
+    body {
+      padding-top: 20px;
+      padding-bottom: 20px;
+    }
+
+    .monospace {
+      font-family: "Lucida Console", Monaco, monospace;
+    }
+
+    p {
+      white-space: pre-wrap;
+      margin: 0;
+    }
+
+    p:hover {
+      background: #EEE;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- Static navbar -->
+    <nav class="navbar navbar-default">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand monospace">TAILOG</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Home</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <form class="navbar-form navbar-left" method="get">
+              <div class="input-group">
+                <input name="file" type="text" class="form-control" placeholder="<%= params[:file] || 'File Name...' %>">
+                <span class="input-group-btn">
+                  <button class="btn btn-default" type="button">Go!</button>
+                </span>
+              </div>
+            </form>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div><!--/.container-fluid -->
+    </nav>
+
+    <% if params[:file] %>
+      <% file_path = File.join Tailog.log_path, params[:file] %>
+      <h3 class="page-header monospace"><%= file_path %></h3>
+
+      <% begin %>
+        <% File.open file_path do |file| %>
+
+          <div id="content" class="monospace">
+            <% file_size = file.size %>
+            <% file.tail(100).each do |line| %>
+              <p><%= h line %></p>
+            <% end %>
+          </div>
+
+          <script type="text/javascript">
+            window.fileSize = <%= file_size %>;
+            window.fileSizeDone = {};
+            var $window = $(window),
+                $document = $(document),
+                $content = $("#content");
+
+            setInterval(function() {
+              $.get(window.location.href, { seek: window.fileSize }, function(data) {
+                var $data = $(data);
+
+                if (window.fileSizeDone[window.fileSize]) {
+                  return
+                } else if (!$data.length) {
+                  window.fileSizeDone[window.fileSize] = true
+                }
+
+                if ($window.scrollTop() + $window.height() == $document.height()) {
+                  $(data).appendTo($content);
+                  $window.scrollTop($document.height() - $window.height())
+                } else {
+                  $(data).appendTo($content);
+                }
+              });
+            }, 1000);
+          </script>
+
+        <% end %>
+
+      <% rescue => error %>
+        <div class="alert alert-danger"><%= h error.message %></div>
+      <% end %>
+    <% end %>
+
+  </div> <!-- /container -->
+</body>
+</html>
