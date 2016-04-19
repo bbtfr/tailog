@@ -56,11 +56,12 @@
       </div><!--/.container-fluid -->
     </nav>
 
-    <% if params[:file] %>
-      <% file_path = File.join Tailog.log_path, params[:file] %>
-      <h3 class="page-header monospace"><%= file_path %></h3>
+    <% begin %>
 
-      <% begin %>
+      <% if params[:file] %>
+        <% file_path = File.join Tailog.log_path, params[:file] %>
+        <h3 class="page-header monospace"><%= file_path %></h3>
+
         <% File.open file_path do |file| %>
 
           <div id="content" class="monospace">
@@ -99,20 +100,20 @@
 
         <% end %>
 
-      <% rescue => error %>
-        <div class="alert alert-danger">
-          <h4><%= h error.class %>: <%= h error.message %></h4>
-          <% error.backtrace.each do |backtrace| %>
-            <%= h backtrace %><br>
+      <% else %>
+        <div id="content" class="monospace">
+          <% Dir[File.join Tailog.log_path, '**/*.log'].each do |file| %>
+            <% relative_file = Pathname.new(file).relative_path_from(Pathname.new(Tailog.log_path)) %>
+            <a href="?file=<%= relative_file %>"><%= file %></a>
           <% end %>
         </div>
       <% end %>
 
-    <% else %>
-      <div id="content" class="monospace">
-        <% Dir[File.join Tailog.log_path, '**/*.log'].each do |file| %>
-          <% relative_file = Pathname.new(file).relative_path_from(Pathname.new(Tailog.log_path)) %>
-          <a href="?file=<%= relative_file %>"><%= file %></a>
+    <% rescue => error %>
+      <div class="alert alert-danger">
+        <h4><%= h error.class %>: <%= h error.message %></h4>
+        <% error.backtrace.each do |backtrace| %>
+          <%= h backtrace %><br>
         <% end %>
       </div>
     <% end %>
