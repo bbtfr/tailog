@@ -64,43 +64,43 @@
         <% file_path = File.join Tailog.log_path, params[:file] %>
         <h3 class="page-header monospace"><%= file_path %></h3>
 
-        <% File.open file_path do |file| %>
+        <% File.open file_path do |file| end %>
+        <div id="content" class="monospace"></div>
 
-          <div id="content" class="monospace">
-            <% file_size = file.size %>
-            <% file.tail(100).each do |line| %>
-              <p><%= h line %></p>
-            <% end %>
-          </div>
+        <script type="text/javascript">
+          window.fileSize = {};
+          window.fileSizeDone = {};
+          var $window = $(window),
+              $document = $(document),
+              $content = $("#content");
 
-          <script type="text/javascript">
-            window.fileSize = <%= file_size %>;
-            window.fileSizeDone = {};
-            var $window = $(window),
-                $document = $(document),
-                $content = $("#content");
+          function loadMore() {
+            $.post(window.location.href, { seek: window.fileSize }, function(json) {
+              try {
+                var data = JSON.parse(json);
 
-            setInterval(function() {
-              $.get(window.location.href, { seek: window.fileSize }, function(data) {
-                var $data = $(data);
+                var fileSizeKey = data.server_uuid + '-' + data.file_size;
+                if (window.fileSizeDone[fileSizeKey]) return;
+                window.fileSizeDone[fileSizeKey] = true;
+                window.fileSize[data.server_uuid] = data.file_size;
 
-                if (window.fileSizeDone[window.fileSize]) {
-                  return
-                } else if (!$data.length) {
-                  window.fileSizeDone[window.fileSize] = true
+                if (!data.content) return;
+                var shouldScrollToBottom = $window.scrollTop() + $window.height() == $document.height();
+                $(data.content).appendTo($content);
+
+                if (shouldScrollToBottom) {
+                  $window.scrollTop($document.height() - $window.height());
                 }
 
-                if ($window.scrollTop() + $window.height() == $document.height()) {
-                  $(data).appendTo($content);
-                  $window.scrollTop($document.height() - $window.height())
-                } else {
-                  $(data).appendTo($content);
-                }
-              });
-            }, 3000);
-          </script>
+              } catch (error) {
+                console.log(error)
+              }
+            });
+          }
 
-        <% end %>
+          setInterval(loadMore, 3000);
+          loadMore();
+        </script>
 
       <% else %>
         <div id="content" class="monospace">
@@ -112,12 +112,7 @@
       <% end %>
 
     <% rescue => error %>
-      <div class="alert alert-danger">
-        <h4><%= h error.class %>: <%= h error.message %></h4>
-        <% error.backtrace.each do |backtrace| %>
-          <%= h backtrace %><br>
-        <% end %>
-      </div>
+      <%= erb :error, locals: { error: error } %>
     <% end %>
 
   </div> <!-- /container -->

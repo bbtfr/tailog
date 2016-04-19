@@ -1,0 +1,6 @@
+<div class="alert alert-danger monospace">
+  <h4><%= h error.class %>: <%= h error.message %></h4>
+  <% error.backtrace.each do |backtrace| %>
+    <%= h backtrace %><br>
+  <% end %>
+</div>

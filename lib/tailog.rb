@@ -1,13 +1,19 @@
 require 'tailog/version'
-require 'tailog/ext/file'
 require 'sinatra/base'
 require 'active_support/configurable'
+require 'tailog/ext/file'
+require 'securerandom'
+require 'json'
 
 module Tailog
   include ActiveSupport::Configurable
 
   config_accessor :log_path do
     File.expand_path("log", Dir.pwd)
+  end
+
+  config_accessor :server_uuid do
+    SecureRandom.uuid
   end
 
   class App < Sinatra::Base
@@ -22,11 +28,31 @@ module Tailog
     end
 
     get '/' do
-      if params[:seek]
-        erb :ajax
-      else
-        erb :index
+      redirect to('/logs')
+    end
+
+    get '/logs' do
+      erb :'logs/index'
+    end
+
+    post '/logs' do
+      begin
+        file_path = File.join Tailog.log_path, params[:file]
+        file = File.open file_path
+        file_size = file.size
+        seek = params[:seek] && params[:seek][Tailog.server_uuid] || file_size
+        file.seek seek.to_i
+        content = erb :'logs/list', locals: { file: file }
+        file.close
+      rescue => error
+        content = erb :error, locals: { error: error }
       end
+
+      {
+        server_uuid: Tailog.server_uuid,
+        file_size: file_size,
+        content: content
+      }.to_json
     end
   end
 end
