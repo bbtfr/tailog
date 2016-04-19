@@ -7,7 +7,8 @@
       <p><%= h line %></p>
     <% end %>
     <script type="text/javascript">
-      window.fileSize = <%= file_size %>;
+      if (window.fileSize < <%= file_size %>)
+        window.fileSize = <%= file_size %>;
     </script>
   <% end %>
 <% rescue => error %>

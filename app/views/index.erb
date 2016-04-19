@@ -58,6 +58,8 @@
 
     <% begin %>
 
+      <% raise RuntimeError, "Tailog.log_path is not present!" unless Tailog.log_path %>
+
       <% if params[:file] %>
         <% file_path = File.join Tailog.log_path, params[:file] %>
         <h3 class="page-header monospace"><%= file_path %></h3>
