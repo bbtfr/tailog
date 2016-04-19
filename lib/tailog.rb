@@ -42,10 +42,10 @@ module Tailog
         file_size = file.size
         seek = params[:seek] && params[:seek][Tailog.server_uuid] || file_size
         file.seek seek.to_i
-        content = erb :'logs/list', locals: { file: file }
+        content = erb :'logs/list', locals: { file: file }, layout: false
         file.close
       rescue => error
-        content = erb :error, locals: { error: error }
+        content = erb :error, locals: { error: error }, layout: false
       end
 
       {
@@ -53,6 +53,10 @@ module Tailog
         file_size: file_size,
         content: content
       }.to_json
+    end
+
+    get '/env' do
+      erb :env
     end
   end
 end

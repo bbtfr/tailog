@@ -1,120 +1,56 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>TAILOG</title>
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
-  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap.min.css">
-  <style type="text/css">
-    body {
-      padding-top: 20px;
-      padding-bottom: 20px;
-    }
+<% begin %>
 
-    .monospace {
-      font-family: "Lucida Console", Monaco, monospace;
-    }
+  <% raise RuntimeError, "Tailog.log_path is not present!" unless Tailog.log_path %>
 
-    p {
-      white-space: pre-wrap;
-      margin: 0;
-    }
+  <% if params[:file] %>
+    <% file_path = File.join Tailog.log_path, params[:file] %>
+    <h3 class="page-header"><%= file_path %></h3>
 
-    p:hover {
-      background: #EEE;
-    }
+    <% File.open file_path do |file| end %>
+    <div id="content"></div>
 
-    a {
-      display: block;
-    }
-  </style>
-</head>
-<body>
+    <script type="text/javascript">
+      window.fileSize = {};
+      window.fileSizeDone = {};
+      var $window = $(window),
+          $document = $(document),
+          $content = $("#content");
 
-  <div class="container">
+      function loadMore() {
+        $.post(window.location.href, { seek: window.fileSize }, function(json) {
+          try {
+            var data = JSON.parse(json);
 
-    <!-- Static navbar -->
-    <nav class="navbar navbar-default">
-      <div class="container-fluid">
-        <div class="navbar-header">
-          <a class="navbar-brand monospace">TAILOG</a>
-        </div>
-        <div id="navbar" class="navbar-collapse collapse">
-          <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Logs</a></li>
-          </ul>
-          <ul class="nav navbar-nav navbar-right">
-            <form class="navbar-form navbar-left" method="get">
-              <div class="input-group">
-                <input name="file" type="text" class="form-control" placeholder="<%= params[:file] || 'File Name...' %>">
-                <span class="input-group-btn">
-                  <button class="btn btn-default" type="button">Go!</button>
-                </span>
-              </div>
-            </form>
-          </ul>
-        </div><!--/.nav-collapse -->
-      </div><!--/.container-fluid -->
-    </nav>
+            var fileSizeKey = data.server_uuid + '-' + data.file_size;
+            if (window.fileSizeDone[fileSizeKey]) return;
+            window.fileSizeDone[fileSizeKey] = true;
+            window.fileSize[data.server_uuid] = data.file_size;
 
-    <% begin %>
+            if (!data.content) return;
+            var shouldScrollToBottom = $window.scrollTop() + $window.height() == $document.height();
+            $(data.content).appendTo($content);
 
-      <% raise RuntimeError, "Tailog.log_path is not present!" unless Tailog.log_path %>
+            if (shouldScrollToBottom) {
+              $window.scrollTop($document.height() - $window.height());
+            }
 
-      <% if params[:file] %>
-        <% file_path = File.join Tailog.log_path, params[:file] %>
-        <h3 class="page-header monospace"><%= file_path %></h3>
-
-        <% File.open file_path do |file| end %>
-        <div id="content" class="monospace"></div>
-
-        <script type="text/javascript">
-          window.fileSize = {};
-          window.fileSizeDone = {};
-          var $window = $(window),
-              $document = $(document),
-              $content = $("#content");
-
-          function loadMore() {
-            $.post(window.location.href, { seek: window.fileSize }, function(json) {
-              try {
-                var data = JSON.parse(json);
-
-                var fileSizeKey = data.server_uuid + '-' + data.file_size;
-                if (window.fileSizeDone[fileSizeKey]) return;
-                window.fileSizeDone[fileSizeKey] = true;
-                window.fileSize[data.server_uuid] = data.file_size;
-
-                if (!data.content) return;
-                var shouldScrollToBottom = $window.scrollTop() + $window.height() == $document.height();
-                $(data.content).appendTo($content);
-
-                if (shouldScrollToBottom) {
-                  $window.scrollTop($document.height() - $window.height());
-                }
-
-              } catch (error) {
-                console.log(error)
-              }
-            });
+          } catch (error) {
+            console.log(error)
           }
+        });
+      }
 
-          setInterval(loadMore, 3000);
-          loadMore();
-        </script>
+      setInterval(loadMore, 3000);
+      loadMore();
+    </script>
 
-      <% else %>
-        <div id="content" class="monospace">
-          <% Dir[File.join Tailog.log_path, '**/*.log'].each do |file| %>
-            <% relative_file = Pathname.new(file).relative_path_from(Pathname.new(Tailog.log_path)) %>
-            <a href="?file=<%= relative_file %>"><%= file %></a>
-          <% end %>
-        </div>
-      <% end %>
-
-    <% rescue => error %>
-      <%= erb :error, locals: { error: error } %>
+  <% else %>
+    <% Dir[File.join Tailog.log_path, '**/*.log'].each do |file| %>
+      <% relative_file = Pathname.new(file).relative_path_from(Pathname.new(Tailog.log_path)) %>
+      <a href="?file=<%= relative_file %>"><%= file %></a>
     <% end %>
+  <% end %>
 
-  </div> <!-- /container -->
-</body>
-</html>
+<% rescue => error %>
+  <%= erb :error, locals: { error: error }, layout: false %>
+<% end %>
