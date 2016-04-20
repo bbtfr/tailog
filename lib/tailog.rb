@@ -40,9 +40,13 @@ module Tailog
         file_path = File.join Tailog.log_path, params[:file]
         file = File.open file_path
         file_size = file.size
-        seek = params[:seek] && params[:seek][Tailog.server_uuid] || file_size
-        file.seek seek.to_i
-        content = erb :'logs/list', locals: { file: file }, layout: false
+        tail = if seek = params[:seek] && params[:seek][Tailog.server_uuid]
+          file.seek seek.to_i
+          file
+        else
+          file.tail(100).join("\n")
+        end
+        content = erb :'logs/list', locals: { file: tail }, layout: false
         file.close
       rescue => error
         content = erb :error, locals: { error: error }, layout: false

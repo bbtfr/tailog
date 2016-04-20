@@ -6,8 +6,9 @@
     <% file_path = File.join Tailog.log_path, params[:file] %>
     <h3 class="page-header"><%= file_path %></h3>
 
-    <% File.open file_path do |file| end %>
-    <div id="content"></div>
+    <% File.open file_path do |file| %>
+      <div id="content"></div>
+    <% end %>
 
     <script type="text/javascript">
       window.fileSize = {};
@@ -28,7 +29,9 @@
 
             if (!data.content) return;
             var shouldScrollToBottom = $window.scrollTop() + $window.height() == $document.height();
-            $(data.content).appendTo($content);
+            $content
+              .append('<p class="text-info">' + data.server_uuid + '</p>')
+              .append(data.content);
 
             if (shouldScrollToBottom) {
               $window.scrollTop($document.height() - $window.height());
