@@ -48,7 +48,7 @@ module Tailog
       return <<-EOS
         alias_method :#{raw_method}, :#{method}
         def #{method} *args
-          Tailog::WatchMethods.logger.info "Method called: #{target} with \#{args}"
+          Tailog::WatchMethods.logger.info "Method called: #{target} \#{self} with \#{args}"
           start = Time.now
           result = send :#{raw_method}, *args
           Tailog::WatchMethods.logger.info "Method finished: #{target} with \#{result} in \#{(Time.now - start) * 1000} ms"
