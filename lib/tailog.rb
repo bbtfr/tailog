@@ -5,7 +5,7 @@ require 'tailog/ext/file'
 require 'sinatra/base'
 require 'active_support/configurable'
 
-require 'securerandom'
+require 'socket'
 require 'open3'
 require 'json'
 
@@ -13,13 +13,11 @@ module Tailog
   include ActiveSupport::Configurable
   extend Tailog::WatchMethods
 
-  config_accessor :log_path do
-    File.expand_path("log", Dir.pwd)
-  end
+  config_accessor :log_path
+  self.log_path = File.expand_path("log", Dir.pwd)
 
-  config_accessor :server_uuid do
-    SecureRandom.uuid
-  end
+  config_accessor :server_hostname
+  self.server_hostname = Socket.gethostname
 
   class App < Sinatra::Base
     set :root, File.expand_path("../../app", __FILE__)
@@ -45,7 +43,7 @@ module Tailog
         file_path = File.join Tailog.log_path, params[:file]
         file = File.open file_path
         file_size = file.size
-        tail = if seek = params[:seek] && params[:seek][Tailog.server_uuid]
+        tail = if seek = params[:seek] && params[:seek][Tailog.server_hostname]
           file.seek seek.to_i
           file
         else
@@ -58,7 +56,7 @@ module Tailog
       end
 
       {
-        server_uuid: Tailog.server_uuid,
+        server_hostname: Tailog.server_hostname,
         file_size: file_size,
         content: content
       }.to_json
@@ -76,6 +74,7 @@ module Tailog
       content = erb :"script/#{params[:type]}", locals: { script: params[:script] }, layout: false
 
       {
+        server_hostname: Tailog.server_hostname,
         content: content
       }.to_json
     end

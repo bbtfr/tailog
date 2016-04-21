@@ -9,10 +9,14 @@ module Tailog
 
     def inject_methods targets
       targets.each do |target|
-        if target.include? "#"
-          inject_instance_method target
-        else
-          inject_class_method target
+        begin
+          if target.include? "#"
+            inject_instance_method target
+          else
+            inject_class_method target
+          end
+        rescue => error
+          WatchMethods.logger.error "Inject method `#{target}' failed: #{error.class}: #{error.message}"
         end
       end
     end
@@ -30,8 +34,6 @@ module Tailog
           #{build_watch_method target, method}
         end
       EOS
-    rescue => error
-      WatchMethods.logger.error "Inject class method `#{target}' failed: #{error.class}: #{error.message}"
     end
 
     def inject_instance_method target
@@ -39,23 +41,25 @@ module Tailog
       klass.constantize.class_eval <<-EOS, __FILE__, __LINE__
         #{build_watch_method target, method}
       EOS
-    rescue => error
-      WatchMethods.logger.error "Inject instance method `#{target}' failed: #{error.class}: #{error.message}"
     end
 
     def build_watch_method target, method
       raw_method = "watch_method_raw_#{method}"
       return <<-EOS
-        alias_method :#{raw_method}, :#{method}
-        def #{method} *args
-          Tailog::WatchMethods.logger.info "Method called: #{target} \#{self} with \#{args}"
-          start = Time.now
-          result = send :#{raw_method}, *args
-          Tailog::WatchMethods.logger.info "Method finished: #{target} with \#{result} in \#{(Time.now - start) * 1000} ms"
-          result
-        rescue => error
-          Tailog::WatchMethods.logger.error "Method failed: #{target} raises \#{error.class}: \#{error.message}\\n\#{error.backtrace.join("\\n")}"
-          raise error
+        unless instance_methods.include?(:#{raw_method})
+          alias_method :#{raw_method}, :#{method}
+          def #{method} *args
+            Tailog::WatchMethods.logger.info "Method called: #{target}, self: \#{self.inspect}, arguments: \#{args.inspect}"
+            start = Time.now
+            result = send :#{raw_method}, *args
+            Tailog::WatchMethods.logger.info "Method finished: #{target} in \#{(Time.now - start) * 1000} ms, result: \#{result.inspect}"
+            result
+          rescue => error
+            Tailog::WatchMethods.logger.error "Method failed: #{target}, error: \#{error.class} - \#{error.message}\\n\#{error.backtrace.join("\\n")}"
+            raise error
+          end
+        else
+          Tailog::WatchMethods.logger.error "Inject method `#{target}' failed: already injected"
         end
       EOS
     end

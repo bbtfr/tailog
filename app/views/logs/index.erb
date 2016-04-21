@@ -22,15 +22,15 @@
           try {
             var data = JSON.parse(json);
 
-            var fileSizeKey = data.server_uuid + '-' + data.file_size;
+            var fileSizeKey = data.server_hostname + '-' + data.file_size;
             if (window.fileSizeDone[fileSizeKey]) return;
             window.fileSizeDone[fileSizeKey] = true;
-            window.fileSize[data.server_uuid] = data.file_size;
+            window.fileSize[data.server_hostname] = data.file_size;
 
             if (!data.content) return;
             var shouldScrollToBottom = $window.scrollTop() + $window.height() == $document.height();
             $content
-              .append('<span class="text-info">' + data.server_uuid + '</span>')
+              .append('<span class="text-info">' + data.server_hostname + '</span>')
               .append(data.content);
 
             if (shouldScrollToBottom) {

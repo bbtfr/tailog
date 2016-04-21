@@ -21,6 +21,7 @@
       var data = JSON.parse(json);
       $content
         .html('<hr>')
+        .append('<span class="text-info">' + data.server_hostname + '</span>')
         .append(data.content);
     } catch (error) {
       console.log(error)
