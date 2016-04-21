@@ -1,0 +1,23 @@
+<% begin %>
+  <% Open3.popen3("bash -x -e") do |stdin, stdout, stderr, wait_thr| %>
+    <% output = [] %>
+    <% Thread.new do until (line = stdout.gets).nil? do output << [ :stdout, line ] end end %>
+    <% Thread.new do until (line = stderr.gets).nil? do output << [ :stderr, line ] end end %>
+
+    <% stdin.puts script %>
+    <% stdin.puts "exit" %>
+    <% wait_thr.join %>
+
+    <% output.each do |key, line| %>
+      <% if key == :stdout %>
+        <p><%= h line %></p>
+      <% elsif line =~ /^\+ (.*)/ %>
+        <p class="text-info">$ <%= h $1 %></p>
+      <% else %>
+        <p class="text-danger"><%= h line %></p>
+      <% end %>
+    <% end %>
+  <% end %>
+<% rescue => error %>
+  <%= erb :error, locals: { error: error }, layout: false %>
+<% end %>

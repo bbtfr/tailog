@@ -1,12 +1,17 @@
 require 'tailog/version'
+require 'tailog/watch_methods'
+require 'tailog/ext/file'
+
 require 'sinatra/base'
 require 'active_support/configurable'
-require 'tailog/ext/file'
+
 require 'securerandom'
+require 'open3'
 require 'json'
 
 module Tailog
   include ActiveSupport::Configurable
+  extend Tailog::WatchMethods
 
   config_accessor :log_path do
     File.expand_path("log", Dir.pwd)
@@ -61,6 +66,18 @@ module Tailog
 
     get '/env' do
       erb :env
+    end
+
+    get '/script' do
+      erb :'script/index'
+    end
+
+    post '/script' do
+      content = erb :"script/#{params[:type]}", locals: { script: params[:script] }, layout: false
+
+      {
+        content: content
+      }.to_json
     end
   end
 end

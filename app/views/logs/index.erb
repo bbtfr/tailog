@@ -7,7 +7,7 @@
     <h3 class="page-header"><%= file_path %></h3>
 
     <% File.open file_path do |file| %>
-      <div id="content"></div>
+      <div id="content" class="content-hover"></div>
     <% end %>
 
     <script type="text/javascript">
@@ -30,7 +30,7 @@
             if (!data.content) return;
             var shouldScrollToBottom = $window.scrollTop() + $window.height() == $document.height();
             $content
-              .append('<p class="text-info">' + data.server_uuid + '</p>')
+              .append('<span class="text-info">' + data.server_uuid + '</span>')
               .append(data.content);
 
             if (shouldScrollToBottom) {
@@ -50,7 +50,7 @@
   <% else %>
     <% Dir[File.join Tailog.log_path, '**/*.log'].each do |file| %>
       <% relative_file = Pathname.new(file).relative_path_from(Pathname.new(Tailog.log_path)) %>
-      <a href="?file=<%= relative_file %>"><%= file %></a>
+      <p><a href="?file=<%= relative_file %>"><%= file %></a></p>
     <% end %>
   <% end %>
 

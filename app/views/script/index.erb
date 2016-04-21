@@ -1,0 +1,29 @@
+<form id="script" class="clearfix script" method="post">
+  <div class="form-group">
+    <textarea name="script" class="form-control" placeholder="Your Script..." rows="8"></textarea>
+  </div>
+  <div class="pull-right">
+    <select name="type" class="form-control">
+      <option value="ruby">Ruby</option>
+      <option value="bash">Bash</option>
+    </select>
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </div>
+</form>
+
+<div id="content"></div>
+
+<script type="text/javascript">
+  var $content = $("#content");
+
+  $('#script').ajaxForm(function(json) {
+    try {
+      var data = JSON.parse(json);
+      $content
+        .html('<hr>')
+        .append(data.content);
+    } catch (error) {
+      console.log(error)
+    }
+  });
+</script>
