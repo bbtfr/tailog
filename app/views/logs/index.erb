@@ -49,28 +49,33 @@
       var $highlight = $("#highlight"),
           $highlightList = $("#highlight-list");
 
-      function highlight() {
-        var highlight = $highlight.val();
-        if ($highlightList.find('.highlight-' + highlight).length > 0) return;
-        $content.highlight(highlight, { className: 'highlight highlight-' + highlight });
-        $highlightList.append('<span class="label label-primary highlight-' + highlight + ' toggle-highlight">' + highlight + '</span>');
+      function rawHighlight(keyword) {
+        $content.highlight(keyword, { className: 'highlight highlight-' + keyword });
       }
 
-      $("#add-highlight").click(highlight);
+      function rawUnhighlight(keyword) {
+        $content.unhighlight({ className: 'highlight-' + keyword });
+      }
+
+      function highlight(keyword) {
+        if ($highlightList.find('.highlight-' + keyword).length > 0) return;
+        rawHighlight(keyword);
+        $highlightList.append('<span class="label label-primary highlight-' + keyword + ' toggle-highlight">' + keyword + '</span>');
+      }
+
       $highlight.keypress(function(event) {
         if ((event.keyCode || event.which) === 13) {
-          highlight();
+          highlight($highlight.val());
         }
       });
+      $("#add-highlight").click(function() {
+        highlight($highlight.val());
+      });
 
-      $("#highlight-list").on("click", ".toggle-highlight", function() {
+      $("#highlight-list").on("click", ".toggle-highlight", function(event) {
         var $this = $(this),
-            highlight = $this.text();
-        if ($this.data('hidden')) {
-          $content.highlight(highlight, { className: 'highlight highlight-' + highlight });
-        } else {
-          $content.unhighlight({ className: 'highlight-' + highlight });
-        }
+            keyword = $this.text();
+        $this.data('hidden') ? rawHighlight(keyword) : rawUnhighlight(keyword);
         $this.data('hidden', !$this.data('hidden'));
       });
 
@@ -91,9 +96,15 @@
 
             if (!data.content) return;
             var shouldScrollToBottom = $window.scrollTop() + $window.height() == $document.height();
+
             $content
               .append('<span class="text-info">' + data.server_hostname + ' - ' + data.file_size + '</span>')
               .append(ansi_up.ansi_to_html(data.content));
+
+            $highlightList.find("span").each(function(index, node) {
+              var $node = $(node);
+              $node.data('hidden') || rawHighlight($node.text());
+            });
 
             if (shouldScrollToBottom) {
               $window.scrollTop($document.height() - $window.height());
