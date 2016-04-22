@@ -19,7 +19,7 @@ module Tailog
           content << "[#{Tailog::WatchMethods.request_id}]" if Tailog::WatchMethods.request_id
           content << " #{severity.rjust(5)}"
           content << " (#{progname})" if progname
-          content << ": #{message.gsub(/\\n\\s*/, " ")}"
+          content << ": #{message.gsub(/\n\s*/, " ")}"
           content << "\n"
           content
         end
