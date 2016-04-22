@@ -9,6 +9,28 @@ p {
   margin: 0;
 }
 
+.fixed-top-right {
+  position: fixed;
+  top: 25px;
+  right: 25px;
+}
+
+.settings-panel {
+  margin-top: 50px;
+  width: 320px;
+  box-shadow: 0 6px 12px rgba(0,0,0,.175);
+}
+
+.highlight-list {
+  margin-top: 5px;
+}
+
+.highlight-list span {
+  cursor: pointer;
+  margin-right: 5px;
+  font-size: 12px;
+}
+
 .content-hover p:hover {
   background: #EEE;
 }
@@ -36,4 +58,8 @@ p {
   margin: 10px 0 20px;
   color: #a94442;
   border-bottom: 3px dashed #d9534f;
+}
+
+.highlight {
+  background: #FFFF88;
 }

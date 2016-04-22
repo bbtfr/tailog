@@ -7,23 +7,78 @@
     <h3 class="page-header"><%= file_path %></h3>
 
     <% File.open file_path do |file| %>
-      <div id="content" class="content-hover"></div>
+      <div id="content" class="content content-hover"></div>
     <% end %>
 
-    <a id="add_divider" class="btn btn-danger pull-right">Add Divider</a>
+    <a id="settings-toggle" class="btn btn-primary fixed-top-right"><i class="glyphicon glyphicon-cog"></i></a>
+
+    <div id="settings-panel" class="panel panel-info fixed-top-right settings-panel hidden">
+      <div class="panel-heading">Settings</div>
+      <div class="panel-body">
+        <div class="form-group btn-group">
+          <a id="add-divider" class="btn btn-default">Add Divider</a>
+          <a id="clear-logs" class="btn btn-default">Clear Logs</a>
+        </div>
+        <div class="form-group">
+          <div class="input-group">
+            <input id="highlight" type="text" class="form-control" placeholder="Keyword">
+            <span class="input-group-btn">
+              <button id="add-highlight" class="btn btn-default" type="button">Highlight!</button>
+            </span>
+          </div>
+          <div id="highlight-list" class="highlight-list"></div>
+        </div>
+      </div>
+    </div>
 
     <script type="text/javascript">
+      var $settingsPanel = $("#settings-panel");
+      $("#settings-toggle").click(function() {
+        $settingsPanel.toggleClass("hidden");
+      });
+
+      var dividerId = 1;
+      $("#add-divider").click(function() {
+        $content.append('<span class="divider"> #' + dividerId++ + ' - ' + new Date() + '</span>');
+      });
+
+      $("#clear-logs").click(function() {
+        $content.html('');
+      });
+
+      var $highlight = $("#highlight"),
+          $highlightList = $("#highlight-list");
+
+      function highlight() {
+        var highlight = $highlight.val();
+        if ($highlightList.find('.highlight-' + highlight).length > 0) return;
+        $content.highlight(highlight, { className: 'highlight highlight-' + highlight });
+        $highlightList.append('<span class="label label-primary highlight-' + highlight + ' toggle-highlight">' + highlight + '</span>');
+      }
+
+      $("#add-highlight").click(highlight);
+      $highlight.keypress(function(event) {
+        if ((event.keyCode || event.which) === 13) {
+          highlight();
+        }
+      });
+
+      $("#highlight-list").on("click", ".toggle-highlight", function() {
+        var $this = $(this),
+            highlight = $this.text();
+        if ($this.data('hidden')) {
+          $content.highlight(highlight, { className: 'highlight highlight-' + highlight });
+        } else {
+          $content.unhighlight({ className: 'highlight-' + highlight });
+        }
+        $this.data('hidden', !$this.data('hidden'));
+      });
+
       window.fileSize = {};
       window.fileSizeDone = {};
       var $window = $(window),
           $document = $(document),
           $content = $("#content");
-
-      var dividerId = 1;
-      $("#add_divider").click(function() {
-        $content.append('<span class="divider"> #' + dividerId++ + ' - ' + new Date() + '</span>');
-      });
-
       function loadMore() {
         $.post(window.location.href, { seek: window.fileSize }, function(json) {
           try {

@@ -15,14 +15,14 @@
         // Normal and then Bright
         ANSI_COLORS = [
           [
-            { color: "8, 2, 0",        'class': "ansi-black"   },
-            { color: "228, 68, 41",    'class': "ansi-red"     },
-            { color: "0, 173, 101",    'class': "ansi-green"   },
-            { color: "254, 238, 0",    'class': "ansi-yellow"  },
-            { color: "0, 176, 234",    'class': "ansi-blue"    },
-            { color: "178, 128, 165",  'class': "ansi-magenta" },
-            { color: "193, 233, 247",  'class': "ansi-cyan"    },
-            { color: "180, 177, 177",  'class': "ansi-white"   }
+            { color: "27, 27, 27",     'class': "ansi-black"   },
+            { color: "182, 80, 47",    'class': "ansi-red"     },
+            { color: "141, 161, 88",   'class': "ansi-green"   },
+            { color: "220, 175, 95",   'class': "ansi-yellow"  },
+            { color: "126, 170, 199",  'class': "ansi-blue"    },
+            { color: "176, 101, 152",  'class': "ansi-magenta" },
+            { color: "141, 220, 217",  'class': "ansi-cyan"    },
+            { color: "217, 217, 217",  'class': "ansi-white"   }
           ], [
             { color: "27, 27, 27",     'class': "ansi-bright-black"   },
             { color: "182, 80, 47",    'class': "ansi-bright-red"     },
