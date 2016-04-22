@@ -3,21 +3,22 @@ require 'tailog/watch_methods'
 require 'tailog/ext/file'
 
 require 'sinatra/base'
-require 'active_support/configurable'
-
 require 'socket'
 require 'open3'
 require 'json'
 
 module Tailog
-  include ActiveSupport::Configurable
   extend Tailog::WatchMethods
 
-  config_accessor :log_path
-  self.log_path = File.expand_path("log", Dir.pwd)
+  class << self
+    attr_accessor :log_path
 
-  config_accessor :server_hostname
-  self.server_hostname = Socket.gethostname
+    def server_hostname
+      @server_hostname ||= Socket.gethostname
+    end
+  end
+
+  self.log_path = File.expand_path("log", Dir.pwd)
 
   class App < Sinatra::Base
     set :root, File.expand_path("../../app", __FILE__)

@@ -10,12 +10,18 @@
       <div id="content" class="content-hover"></div>
     <% end %>
 
+    <a id="add_divider" class="btn btn-danger pull-right">Add Divider</a>
+
     <script type="text/javascript">
       window.fileSize = {};
       window.fileSizeDone = {};
       var $window = $(window),
           $document = $(document),
           $content = $("#content");
+
+      $("#add_divider").click(function() {
+        $content.append('<span class="divider">' + new Date() + '</span>');
+      });
 
       function loadMore() {
         $.post(window.location.href, { seek: window.fileSize }, function(json) {
@@ -30,7 +36,7 @@
             if (!data.content) return;
             var shouldScrollToBottom = $window.scrollTop() + $window.height() == $document.height();
             $content
-              .append('<span class="text-info">' + data.server_hostname + '</span>')
+              .append('<span class="text-info">' + data.server_hostname + ' - ' + data.file_size + '</span>')
               .append(data.content);
 
             if (shouldScrollToBottom) {
