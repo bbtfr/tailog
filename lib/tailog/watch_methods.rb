@@ -52,6 +52,21 @@ module Tailog
       end
     end
 
+    def inject_constants targets
+      targets.each do |target|
+        begin
+          target.constantize.instance_methods(false).each do |method|
+            inject_instance_method "#{target}##{method}"
+          end
+          target.constantize.methods(false).each do |method|
+            inject_class_method "#{target}.#{method}"
+          end
+        rescue => error
+          WatchMethods.logger.error "Inject constant `#{target}' failed: #{error.class}: #{error.message}"
+        end
+      end
+    end
+
     def inject_methods targets
       targets.each do |target|
         begin
