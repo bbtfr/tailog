@@ -1,0 +1,39 @@
+body {
+  font-family: "Lucida Console", Monaco, monospace;
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+p {
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+.content-hover p:hover {
+  background: #EEE;
+}
+
+.dl-horizontal dt {
+  width: 320px;
+  padding-right: 20px;
+}
+
+.dl-horizontal dd {
+  margin-left: 320px;
+}
+
+.dl-hover dt:hover + dd, .dl-hover dd:hover {
+  background: #EEE;
+}
+
+.script select.form-control {
+  display: inline-block;
+  width: 100px;
+}
+
+.divider {
+  display: block;
+  margin: 10px 0 20px;
+  color: #a94442;
+  border-bottom: 3px dashed #d9534f;
+}

@@ -38,7 +38,7 @@
             var shouldScrollToBottom = $window.scrollTop() + $window.height() == $document.height();
             $content
               .append('<span class="text-info">' + data.server_hostname + ' - ' + data.file_size + '</span>')
-              .append(data.content);
+              .append(ansi_up.ansi_to_html(data.content));
 
             if (shouldScrollToBottom) {
               $window.scrollTop($document.height() - $window.height());

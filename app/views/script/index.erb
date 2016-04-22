@@ -22,7 +22,7 @@
       $content
         .html('<hr>')
         .append('<span class="text-info">' + data.server_hostname + '</span>')
-        .append(data.content);
+        .append(ansi_up.ansi_to_html(data.content));
     } catch (error) {
       console.log(error)
     }
