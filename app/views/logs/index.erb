@@ -19,8 +19,9 @@
           $document = $(document),
           $content = $("#content");
 
+      var dividerId = 1;
       $("#add_divider").click(function() {
-        $content.append('<span class="divider">' + new Date() + '</span>');
+        $content.append('<span class="divider"> #' + dividerId++ + ' - ' + new Date() + '</span>');
       });
 
       function loadMore() {
