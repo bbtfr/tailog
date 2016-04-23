@@ -1,4 +1,6 @@
 require 'tailog/version'
+require 'tailog/eval'
+require 'tailog/request_id'
 require 'tailog/watch_methods'
 require 'tailog/ext/file'
 
@@ -11,7 +13,7 @@ module Tailog
   extend Tailog::WatchMethods
 
   class << self
-    attr_accessor :log_path
+    attr_accessor :log_path, :request_id
 
     def server_hostname
       @server_hostname ||= Socket.gethostname

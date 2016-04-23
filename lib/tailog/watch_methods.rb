@@ -1,22 +1,17 @@
 require 'active_support/core_ext/string'
-require 'active_support/configurable'
 require 'securerandom'
 require 'logger'
 
 module Tailog
   module WatchMethods
-    include ActiveSupport::Configurable
-
     class << self
-      attr_accessor :request_id
-
       def logger
         return @logger if @logger
         @logger = Logger.new(File.join Tailog.log_path, "watch_methods.log")
         @logger.formatter = proc do |severity, datetime, progname, message|
           content = ""
           content << "[#{datetime.strftime("%Y-%m-%d %H:%M:%S")}]"
-          content << "[#{Tailog::WatchMethods.request_id}]" if Tailog::WatchMethods.request_id
+          content << "[#{Tailog.request_id}]" if Tailog.request_id
           content << " #{severity.rjust(5)}"
           content << " (#{progname})" if progname
           content << ": #{message.gsub(/\n\s*/, " ")}"
@@ -27,71 +22,75 @@ module Tailog
       end
     end
 
-    class RequestId
-      def initialize(app)
-        @app = app
-      end
-
-      def call(env)
-        Tailog::WatchMethods.request_id = external_request_id(env) || internal_request_id
-        @app.call(env).tap do |_status, headers, _body|
-          headers["X-Request-Id"] = Tailog::WatchMethods.request_id
-        end
-      end
-
-      private
-
-      def external_request_id(env)
-        if request_id = env["HTTP_X_REQUEST_ID"].presence
-          request_id.gsub(/[^\w\-]/, "").first(255)
-        end
-      end
-
-      def internal_request_id
-        SecureRandom.uuid
-      end
-    end
-
-    def inject_constants targets
-      targets.each do |target|
-        begin
-          target.constantize.instance_methods(false).each do |method|
-            inject_instance_method "#{target}##{method}"
-          end
-          target.constantize.methods(false).each do |method|
-            inject_class_method "#{target}.#{method}"
-          end
-        rescue => error
-          WatchMethods.logger.error "Inject constant `#{target}' failed: #{error.class}: #{error.message}"
-        end
-      end
-    end
-
-    def inject_methods targets
+    def inject targets
       targets.each do |target|
         begin
           if target.include? "#"
             inject_instance_method target
-          else
+          elsif target.include? "."
             inject_class_method target
+          else
+            inject_constant target
           end
         rescue => error
-          WatchMethods.logger.error "Inject method `#{target}' failed: #{error.class}: #{error.message}"
+          WatchMethods.logger.error "Inject #{target} FAILED: #{error.class}: #{error.message}"
+        end
+      end
+    end
+
+    def cleanup targets
+      targets.each do |target|
+        if target.include? "#"
+          cleanup_instance_method target
+        elsif target.include? "."
+          cleanup_class_method target
+        else
+          cleanup_constant target
         end
       end
     end
 
     private
 
+    RAW_METHOD_PREFIX = "watch_method_raw_"
+
+    def raw_method? method
+      method.to_s.start_with? RAW_METHOD_PREFIX
+    end
+
+    def inject_constant target
+      constant = target.constantize
+      constant.instance_methods(false).each do |method|
+        inject_instance_method "#{target}##{method}" unless raw_method? method
+      end
+      constant.methods(false).each do |method|
+        inject_class_method "#{target}.#{method}" unless raw_method? method
+      end
+    end
+
+    def cleanup_constant target
+      target.constantize.instance_methods(false).each do |method|
+        cleanup_instance_method "#{target}##{method}" unless raw_method? method
+      end
+      target.constantize.methods(false).each do |method|
+        cleanup_class_method "#{target}.#{method}" unless raw_method? method
+      end
+    end
+
     def inject_class_method target
-      klass, _, method = if target.include? "."
-          target.rpartition(".")
-        else
-          target.rpartition("::")
-        end
+      klass, _, method = target.rpartition(".")
       klass.constantize.class_eval <<-EOS, __FILE__, __LINE__
         class << self
           #{build_watch_method target, method}
+        end
+      EOS
+    end
+
+    def cleanup_class_method target
+      klass, _, method = target.rpartition(".")
+      klass.constantize.class_eval <<-EOS, __FILE__, __LINE__
+        class << self
+          #{build_cleanup_method target, method}
         end
       EOS
     end
@@ -103,8 +102,15 @@ module Tailog
       EOS
     end
 
+    def cleanup_instance_method target
+      klass, _, method = target.rpartition("#")
+      klass.constantize.class_eval <<-EOS, __FILE__, __LINE__
+        #{build_cleanup_method target, method}
+      EOS
+    end
+
     def build_watch_method target, method
-      raw_method = "watch_method_raw_#{method}"
+      raw_method = "#{RAW_METHOD_PREFIX}#{method}"
       return <<-EOS
         unless instance_methods.include?(:#{raw_method})
           alias_method :#{raw_method}, :#{method}
@@ -121,6 +127,16 @@ module Tailog
           end
         else
           Tailog::WatchMethods.logger.error "Inject method `#{target}' failed: already injected"
+        end
+      EOS
+    end
+
+    def build_cleanup_method target, method
+      raw_method = "#{RAW_METHOD_PREFIX}#{method}"
+      return <<-EOS
+        if method_defined? :#{raw_method}
+          alias_method :#{method}, :#{raw_method}
+          remove_method :#{raw_method}
         end
       EOS
     end
