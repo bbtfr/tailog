@@ -16,15 +16,27 @@
 <script type="text/javascript">
   var $content = $("#content");
 
-  $('#script').ajaxForm(function(json) {
-    try {
-      var data = JSON.parse(json);
+  $('#script').ajaxForm({
+    beforeSend: function() {
       $content
-        .html('<hr>')
-        .append('<span class="text-info">' + data.server_hostname + '</span>')
-        .append(ansi_up.ansi_to_html(data.content));
-    } catch (error) {
-      console.log(error)
+        .html('<hr/>')
+        .append('<span class="text-info">Loading...</span>')
+    },
+    error: function() {
+      $content
+        .html('<hr/>')
+        .append('<span class="text-danger">Oops! Something went wrong, please try again later!</span>')
+    },
+    success: function(json) {
+      try {
+        var data = JSON.parse(json);
+        $content
+          .html('<hr/>')
+          .append('<span class="text-info">' + data.server_hostname + '</span>')
+          .append(ansi_up.ansi_to_html(data.content));
+      } catch (error) {
+        console.log(error)
+      }
     }
   });
 </script>

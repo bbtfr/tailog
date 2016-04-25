@@ -27,7 +27,8 @@ p {
 
 .highlight-list span {
   cursor: pointer;
-  margin-right: 5px;
+  display: inline-block;
+  margin: 0 5px 5px 0;
   font-size: 12px;
 }
 
