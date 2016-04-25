@@ -17,9 +17,10 @@ module Tailog
         before = env["HTTP_TAILOG_EVAL_BEFORE"].presence
         after = env["HTTP_TAILOG_EVAL_AFTER"].presence
 
-        eval before if before
+        binding = Object.new.send(:binding)
+        binding.eval before if before
         response = @app.call(env)
-        eval after if after
+        binding.eval after if after
 
         response
       end
