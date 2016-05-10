@@ -1,5 +1,9 @@
 # TAILOG
 
+[![Gem Version](https://img.shields.io/gem/v/tailog.svg)](https://rubygems.org/gems/tailog)
+[![Build Status](https://img.shields.io/travis/bbtfr/tailog.svg)](http://travis-ci.org/bbtfr/tailog)
+[![Code Climate](https://img.shields.io/codeclimate/github/bbtfr/tailog.svg)](https://codeclimate.com/github/bbtfr/tailog)
+
 Sinatra App to serve log in browser
 
 ## Installation
