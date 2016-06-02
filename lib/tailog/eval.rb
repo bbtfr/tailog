@@ -16,11 +16,17 @@ module Tailog
       else
         before = env["HTTP_TAILOG_EVAL_BEFORE"].presence
         after = env["HTTP_TAILOG_EVAL_AFTER"].presence
+        inject = env["HTTP_TAILOG_INJECT"].presence
+        inject_options = env["HTTP_TAILOG_INJECT_OPTIONS"].present? ? JSON.parse(env["HTTP_TAILOG_INJECT_OPTIONS"]).symbolize_keys : Hash.new
 
         binding = Object.new.send(:binding)
-        binding.eval before if before
+        binding.eval(before) if before
+        Tailog.inject(inject.split(" "), inject_options) rescue nil if inject
+
         response = @app.call(env)
-        binding.eval after if after
+
+        Tailog.cleanup(inject.split(" ")) if inject
+        binding.eval(after) if after
 
         response
       end

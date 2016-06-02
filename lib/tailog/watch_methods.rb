@@ -34,6 +34,7 @@ module Tailog
     }
 
     def inject targets, options = {}
+      WatchMethods.logger.debug "Inject #{targets} with options #{options}."
       options = Tailog::WatchMethods.inject_options.merge(options)
       targets.each do |target|
         begin
@@ -51,6 +52,7 @@ module Tailog
     end
 
     def cleanup targets
+      WatchMethods.logger.debug "Cleanup #{targets}."
       targets.each do |target|
         if target.include? "#"
           cleanup_instance_method target
@@ -71,6 +73,11 @@ module Tailog
     end
 
     def inject_constant target, options
+      unless const_defined? target
+        WatchMethods.logger.error "Inject #{target} FAILED: NameError: uninitialized constant #{target}."
+        return
+      end
+
       constant = target.constantize
       constant.instance_methods(false).each do |method|
         inject_instance_method "#{target}##{method}", options unless raw_method? method
