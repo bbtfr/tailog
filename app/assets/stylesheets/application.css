@@ -25,11 +25,15 @@ p {
   margin-top: 5px;
 }
 
-.highlight-list span {
+.highlight-list .label {
   cursor: pointer;
   display: inline-block;
   margin: 0 5px 5px 0;
   font-size: 12px;
+}
+
+.highlight-list .label.highlight-hidden > em {
+  color: #FFF;
 }
 
 .content-hover p:hover {

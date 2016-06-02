@@ -32,6 +32,17 @@
     </div>
 
     <script type="text/javascript">
+      String.prototype.hashCode = function(){
+        var hash = 0;
+        if (this.length == 0) return "0000000";
+        for (i = 0; i < this.length; i++) {
+          char = this.charCodeAt(i);
+          hash = ((hash<<5)-hash)+char;
+          hash = hash & hash; // Convert to 32bit integer
+        }
+        return ("0000000" + (hash >>> 0).toString(16)).substr(-8);
+      }
+
       var $settingsPanel = $("#settings-panel");
       $("#settings-toggle").click(function() {
         $settingsPanel.toggleClass("hidden");
@@ -49,18 +60,28 @@
       var $highlight = $("#highlight"),
           $highlightList = $("#highlight-list");
 
+      function highlightClassname(keyword) {
+        return 'highlight-' + keyword.hashCode();
+      }
+
       function rawHighlight(keyword) {
-        $content.highlight(keyword, { className: 'highlight highlight-' + keyword });
+        $content.highlight(keyword, { className: 'highlight ' + highlightClassname(keyword) });
       }
 
       function rawUnhighlight(keyword) {
-        $content.unhighlight({ className: 'highlight-' + keyword });
+        $content.unhighlight({ className: highlightClassname(keyword) });
       }
 
+      var highlightColors = ['#FFFF88', '#FF88FF', '#88FFFF', '#CCCCFF', '#CCFFCC', '#FFCCCC'];
       function highlight(keyword) {
-        if ($highlightList.find('.highlight-' + keyword).length > 0) return;
+        var color = highlightColors[$highlightList.find("span").length % highlightColors.length];
+        var classname = highlightClassname(keyword);
+
+        if ($highlightList.find('.' + classname).length > 0) return;
         rawHighlight(keyword);
-        $highlightList.append('<span class="label label-primary highlight-' + keyword + ' toggle-highlight">' + keyword + '</span>');
+        $highlightList.append('<div class="label label-primary ' + classname + '"><span>' + keyword + '</span><em>&bull;</em></div>');
+
+        $('body').append('<style>.highlight.' + classname + '{background-color:' + color + ';} .label.' + classname + '>em{color:' + color + ';}</style>');
       }
 
       $highlight.keypress(function(event) {
@@ -72,11 +93,12 @@
         highlight($highlight.val());
       });
 
-      $("#highlight-list").on("click", ".toggle-highlight", function(event) {
+      $("#highlight-list").on("click", ".label", function(event) {
         var $this = $(this),
-            keyword = $this.text();
-        $this.data('hidden') ? rawHighlight(keyword) : rawUnhighlight(keyword);
-        $this.data('hidden', !$this.data('hidden'));
+            keyword = $this.find('span').text();
+
+        $this.hasClass('highlight-hidden') ? rawHighlight(keyword) : rawUnhighlight(keyword);
+        $this.toggleClass('highlight-hidden');
       });
 
       window.fileSize = {};
@@ -101,9 +123,10 @@
               .append('<span class="text-info">' + data.server_hostname + ' - ' + data.file_size + '</span>')
               .append(ansi_up.ansi_to_html(data.content));
 
-            $highlightList.find("span").each(function(index, node) {
-              var $node = $(node);
-              $node.data('hidden') || rawHighlight($node.text());
+            $highlightList.find(".label").each(function(index, node) {
+              var $node = $(node),
+                  keyword = $node.find('span').text();
+              $node.hasClass('highlight-hidden') || rawHighlight(keyword);
             });
 
             if (shouldScrollToBottom) {
