@@ -35,6 +35,21 @@ run Rack::URLMap.new(
 )
 ```
 
+You can turn on authentication by adding:
+
+```ruby
+require 'tailog'
+
+Tailog::App.use Rack::Auth::Basic do |username, password|
+  username == 'username' && password == 'password'
+end
+
+run Rack::URLMap.new(
+  '/'         => Your::App,
+  '/tailog'   => Tailog::App
+)
+```
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
