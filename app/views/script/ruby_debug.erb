@@ -1,0 +1,16 @@
+<% begin %>
+  <% binding = Object.new.send :binding %>
+  <% script.each_line do |line| %>
+    <% next if line.strip.empty? %>
+    <p class="text-info">&gt; <%= h line %></p>
+    <% begin %>
+      <% result = binding.eval(line).inspect %>
+      <p>=> <%= h result %></p>
+    <% rescue => error %>
+      <p class="text-danger"><%= h error.class %>: <%= h error.message %></p>
+      <% break %>
+    <% end %>
+  <% end %>
+<% rescue => error %>
+  <%= erb :error, locals: { error: error }, layout: false %>
+<% end %>

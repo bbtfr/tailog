@@ -1,16 +1,38 @@
 <% begin %>
-  <% b = binding %>
-  <% script.each_line do |line| %>
-    <% next if line.strip.empty? %>
-    <p class="text-info">&gt; <%= h line %></p>
-    <% begin %>
-      <% result = b.eval(line).inspect %>
-      <p>=> <%= h result %></p>
-    <% rescue => error %>
-      <p class="text-danger"><%= h error.class %>: <%= h error.message %></p>
-      <% break %>
+
+  <% # redefine print, puts & p
+
+    OUTPUT = StringIO.new
+
+    def print *args
+      OUTPUT.print *args
+    end
+
+    def puts *args
+      OUTPUT.puts *args
+    end
+
+    def p *args
+      OUTPUT.puts *args.map(&:inspect)
+    end
+
+  %>
+
+  <% begin %>
+    <% binding = Object.new.send :binding %>
+    <% binding.eval(script, "(script)", 1) %>
+    <% OUTPUT.string.each_line do |line| %>
+      <p><%= h line %></p>
+    <% end %>
+  <% rescue => error %>
+    <p class="text-danger"><%= h error.class %>: <%= h error.message %></p>
+    <% error.backtrace.each do |backtrace| %>
+      <% next unless backtrace.start_with? "(script)" %>
+      <p class="text-danger">    <%= h backtrace %></p>
     <% end %>
   <% end %>
+
 <% rescue => error %>
   <%= erb :error, locals: { error: error }, layout: false %>
 <% end %>
+
