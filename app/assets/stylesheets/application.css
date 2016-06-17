@@ -43,10 +43,13 @@ p {
 .dl-horizontal dt {
   width: 320px;
   padding-right: 20px;
+  overflow-x: scroll;
+  text-overflow: initial;
 }
 
 .dl-horizontal dd {
   margin-left: 320px;
+  word-break: break-all;
 }
 
 .dl-hover dt:hover + dd, .dl-hover dd:hover {
