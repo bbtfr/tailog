@@ -1,9 +1,9 @@
 <form id="script" class="clearfix script" method="post">
   <div class="form-group">
-    <textarea name="script" class="form-control" placeholder="Your Script..." rows="8"></textarea>
+    <textarea name="script" id="editor" style="display: none;"></textarea>
   </div>
   <div class="pull-right">
-    <select name="type" class="form-control">
+    <select name="type" class="form-control" id="mode">
       <option value="ruby">Ruby</option>
       <option value="ruby_debug">Ruby (Debug Mode)</option>
       <option value="bash">Bash</option>
@@ -14,7 +14,32 @@
 
 <div id="content"></div>
 
+<script type="text/javascript" src="javascripts/codemirror.js"></script>
+<script type="text/javascript" src="javascripts/mode/ruby.js"></script>
+<script type="text/javascript" src="javascripts/mode/shell.js"></script>
+<link rel="stylesheet" type="text/css" href="stylesheets/codemirror.css">
 <script type="text/javascript">
+  var editor = CodeMirror.fromTextArea($("#editor")[0], {
+    lineNumbers: true,
+    extraKeys: {
+      Tab: function(editor) {
+        var spaces = Array(editor.getOption("indentUnit") + 1).join(" ");
+        editor.replaceSelection(spaces);
+      }
+    }
+  });
+
+  ModeMap = {
+    ruby: "ruby",
+    ruby_debug: "ruby",
+    bash: "shell"
+  };
+
+  $("#mode").change(function() {
+    editor.setOption("mode", ModeMap[$(this).val()]);
+  });
+
+
   var $content = $("#content");
 
   $('#script').ajaxForm({
