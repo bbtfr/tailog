@@ -40,20 +40,8 @@ p {
   background: #EEE;
 }
 
-.dl-horizontal dt {
-  width: 320px;
-  padding-right: 20px;
-  overflow-x: scroll;
-  text-overflow: initial;
-}
-
-.dl-horizontal dd {
-  margin-left: 320px;
+.table td:not(:first-child) {
   word-break: break-all;
-}
-
-.dl-hover dt:hover + dd, .dl-hover dd:hover {
-  background: #EEE;
 }
 
 .script select.form-control {

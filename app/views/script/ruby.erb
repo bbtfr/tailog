@@ -1,33 +1,15 @@
 <% begin %>
 
-  <% # redefine print, puts & p
-
-    OUTPUT = StringIO.new
-
-    def print *args
-      OUTPUT.print *args
-    end
-
-    def puts *args
-      OUTPUT.puts *args
-    end
-
-    def p *args
-      OUTPUT.puts *args.map(&:inspect)
-    end
-
-  %>
+  <% input = StringIO.new(script) %>
+  <% output = StringIO.new %>
+  <% binding = Object.new.send :binding %>
 
   <% begin %>
-    <% binding = Object.new.send :binding %>
-    <% binding.eval(script, "(script)", 1) %>
-    <% OUTPUT.string.each_line do |line| %>
-      <p><%= h line %></p>
-    <% end %>
+    <% Pry.start binding, input: input, output: output %>
+    <%= h output.string %>
   <% rescue => error %>
     <p class="text-danger"><%= h error.class %>: <%= h error.message %></p>
     <% error.backtrace.each do |backtrace| %>
-      <% next unless backtrace.start_with? "(script)" %>
       <p class="text-danger">    <%= h backtrace %></p>
     <% end %>
   <% end %>

@@ -3,6 +3,7 @@ require 'tailog/eval'
 require 'tailog/request_id'
 require 'tailog/watch_methods'
 require 'tailog/ext/file'
+require 'tailog/ext/integer'
 
 require 'sinatra/base'
 require 'socket'

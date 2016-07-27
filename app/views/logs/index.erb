@@ -110,11 +110,18 @@
         $.post(window.location.href, { seek: window.fileSize }, function(json) {
           try {
             var data = JSON.parse(json);
+            var empty = !window.fileSize[data.server_hostname] && data.file_size === 0;
 
             var fileSizeKey = data.server_hostname + '-' + data.file_size;
             if (window.fileSizeDone[fileSizeKey]) return;
             window.fileSizeDone[fileSizeKey] = true;
             window.fileSize[data.server_hostname] = data.file_size;
+
+            if (empty) {
+              $content
+                .append('<span class="text-info">' + data.server_hostname + ' - ' + data.file_size + '</span>')
+                .append('<p><span class="text-danger">There is nothing in this file.</span></p>');
+            }
 
             if (!data.content) return;
             var shouldScrollToBottom = $window.scrollTop() + $window.height() == $document.height();
@@ -144,10 +151,33 @@
     </script>
 
   <% else %>
-    <% Dir[File.join Tailog.log_path, '**/*.log'].each do |file| %>
-      <% relative_file = Pathname.new(file).relative_path_from(Pathname.new(Tailog.log_path)) %>
-      <p><a href="?file=<%= relative_file %>"><%= file %></a></p>
-    <% end %>
+    <table class="table table-striped table-hover">
+      <thead>
+        <tr>
+          <th>File name</th>
+          <th>Size</th>
+          <th>Updated at</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% Dir[File.join Tailog.log_path, '**/*.log'].each do |file| %>
+          <% relative_file = Pathname.new(file).relative_path_from(Pathname.new(Tailog.log_path)) %>
+          <% stat = File.stat(file) %>
+
+          <tr>
+            <td>
+              <a href="?file=<%= relative_file %>"><%= file %></a>
+            </td>
+            <td>
+              <%= stat.size.to_filesize %>
+            </td>
+            <td>
+              <%= stat.mtime %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
   <% end %>
 
 <% rescue => error %>
