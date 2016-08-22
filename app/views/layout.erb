@@ -5,8 +5,10 @@
   <script type="text/javascript" src="javascripts/jquery.js"></script>
   <script type="text/javascript" src="javascripts/jquery.form.js"></script>
   <script type="text/javascript" src="javascripts/jquery.highlight.js"></script>
+  <script type="text/javascript" src="javascripts/jquery.datatables.js"></script>
   <script type="text/javascript" src="javascripts/ansi_up.js"></script>
   <link rel="stylesheet" type="text/css" href="stylesheets/bootstrap.css">
+  <link rel="stylesheet" type="text/css" href="stylesheets/jquery.datatables.css">
   <link rel="stylesheet" type="text/css" href="stylesheets/application.css">
 </head>
 <body>
@@ -35,5 +37,12 @@
     <%= yield %>
 
   </div> <!-- /container -->
+
+<script type="text/javascript">
+  $(".data-tables").DataTable({
+    lengthMenu: [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
+    pageLength: -1
+  });
+</script>
 </body>
 </html>
