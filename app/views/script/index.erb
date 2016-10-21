@@ -8,7 +8,10 @@
       <option value="ruby_debug">Ruby (Debug Mode)</option>
       <option value="bash">Bash</option>
     </select>
-    <button type="submit" class="btn btn-primary">Submit</button>
+    <button id="submit-button" type="submit" class="btn btn-primary">Submit</button>
+  </div>
+  <div>
+    Press <kbd><kbd>Ctrl</kbd> + <kbd>Enter</kbd></kbd> to submit code
   </div>
 </form>
 
@@ -19,14 +22,17 @@
 <script type="text/javascript" src="javascripts/mode/shell.js"></script>
 <link rel="stylesheet" type="text/css" href="stylesheets/codemirror.css">
 <script type="text/javascript">
+  var mac = CodeMirror.keyMap.default == CodeMirror.keyMap.macDefault;
+  CodeMirror.keyMap.default["Tab"] =  function(editor) {
+    var spaces = Array(editor.getOption("indentUnit") + 1).join(" ");
+    editor.replaceSelection(spaces);
+  };
+  CodeMirror.keyMap.default[(mac ? "Cmd" : "Ctrl") + "-Enter"] =  function(editor) {
+    $("#submit-button").trigger('click');
+  };
+
   var editor = CodeMirror.fromTextArea($("#editor")[0], {
-    lineNumbers: true,
-    extraKeys: {
-      Tab: function(editor) {
-        var spaces = Array(editor.getOption("indentUnit") + 1).join(" ");
-        editor.replaceSelection(spaces);
-      }
-    }
+    lineNumbers: true
   });
 
   ModeMap = {
