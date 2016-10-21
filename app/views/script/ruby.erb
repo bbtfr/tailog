@@ -1,12 +1,11 @@
 <% begin %>
-
-  <% input = StringIO.new(script) %>
   <% output = StringIO.new %>
-  <% binding = Object.new.send :binding %>
 
   <% begin %>
-    <% Pry.start binding, input: input, output: output %>
-    <%= h output.string %>
+    <% output.send :eval, script %>
+    <% output.string.each_line do |line| %>
+      <p><%= h line %></p>
+    <% end %>
   <% rescue => error %>
     <p class="text-danger"><%= h error.class %>: <%= h error.message %></p>
     <% error.backtrace.each do |backtrace| %>
