@@ -8,9 +8,9 @@
     <% IRB.Output.each do |key, line| %>
       <% case key %>
       <% when :stdin %>
-        <p><%= h line %></p>
-      <% when :stdout %>
         <p class="text-info"><%= h line %></p>
+      <% when :stdout %>
+        <p><%= h line %></p>
       <% when :stderr %>
         <p class="text-danger"><%= h line %></p>
       <% end %>

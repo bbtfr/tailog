@@ -6,6 +6,13 @@ def IRB.Output
   IRB.conf[:OUTPUT]
 end
 
+def IRB.evaluate_string string
+  irb = IRB::Irb.new nil, StringInputMethod.new(string + "\n")
+  IRB.conf[:MAIN_CONTEXT] = irb.context
+  IRB.conf[:OUTPUT] = []
+  irb.eval_input
+end
+
 class IRB::WorkSpace
   def evaluate(context, statements, file = __FILE__, line = __LINE__)
     @after_ruby_debug_erb = false
