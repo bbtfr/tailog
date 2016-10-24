@@ -1,17 +1,18 @@
 require 'irb'
 
 IRB.setup nil
-IRB.conf[:PROMPT_MODE] = :DEFAULT
-IRB.conf[:VERBOSE] = false
 
 def IRB.Output
   IRB.conf[:OUTPUT]
 end
 
 def IRB.evaluate_string string
+  IRB.conf[:PROMPT_MODE] = :DEFAULT
+  IRB.conf[:VERBOSE] = false
+  IRB.conf[:OUTPUT] = []
+
   irb = IRB::Irb.new nil, StringInputMethod.new(string + "\n")
   IRB.conf[:MAIN_CONTEXT] = irb.context
-  IRB.conf[:OUTPUT] = []
   irb.eval_input
 end
 
