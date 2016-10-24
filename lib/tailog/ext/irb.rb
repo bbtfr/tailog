@@ -1,6 +1,8 @@
 require 'irb'
 
 IRB.setup nil
+IRB.conf[:PROMPT_MODE] = :DEFAULT
+IRB.conf[:VERBOSE] = false
 
 def IRB.Output
   IRB.conf[:OUTPUT]
@@ -38,11 +40,11 @@ class IRB::Irb
   end
 
   def print *args
-    IRB.Output << [ :stderr, args.join ]
+    IRB.Output << [ :stderr, args.join, caller ]
   end
 
   def printf format, *args
-    IRB.Output << [ :stderr, format % args ]
+    IRB.Output << [ :stderr, format % args, caller ]
   end
 end
 
