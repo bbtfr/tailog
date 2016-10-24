@@ -8,7 +8,6 @@
       <option value="ruby_debug">Ruby (Debug Mode)</option>
       <option value="bash">Bash</option>
     </select>
-    <button id="broadcast-button" type="submit" class="btn btn-danger">Broadcast</button>
     <button id="submit-button" type="submit" class="btn btn-primary">Submit</button>
   </div>
   <div>
@@ -17,24 +16,6 @@
 </form>
 
 <div id="content"></div>
-
-<div class="modal fade" tabindex="-1" role="dialog" id="broadcast-modal">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title">Modal title</h4>
-      </div>
-      <div class="modal-body">
-        <p>One fine body&hellip;</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
-      </div>
-    </div><!-- /.modal-content -->
-  </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
 
 <script type="text/javascript" src="javascripts/codemirror.js"></script>
 <script type="text/javascript" src="javascripts/mode/ruby.js"></script>
@@ -67,36 +48,27 @@
 
   var $content = $("#content");
 
-  $("#broadcast-button").click(function(event) {
-    event.preventDefault();
-    $("#broadcast-modal").addClass("in");
-  });
-
-  $("#submit-button").click(function(event) {
-    event.preventDefault();
-    $("#script").ajaxSubmit({
-      beforeSend: function() {
+  $("#script").ajaxForm({
+    beforeSend: function() {
+      $content
+        .html("<hr/>")
+        .append('<span class="text-info">Loading...</span>')
+    },
+    error: function() {
+      $content
+        .html("<hr/>")
+        .append('<span class="text-danger">Oops! Something went wrong, please try again later!</span>')
+    },
+    success: function(json) {
+      try {
+        var data = JSON.parse(json);
         $content
           .html("<hr/>")
-          .append('<span class="text-info">Loading...</span>')
-      },
-      error: function() {
-        $content
-          .html("<hr/>")
-          .append('<span class="text-danger">Oops! Something went wrong, please try again later!</span>')
-      },
-      success: function(json) {
-        try {
-          var data = JSON.parse(json);
-          $content
-            .html("<hr/>")
-            .append('<span class="text-info">' + data.server_hostname + "</span>")
-            .append(ansi_up.ansi_to_html(data.content));
-        } catch (error) {
-          console.log(error)
-        }
+          .append('<span class="text-info">' + data.server_hostname + "</span>")
+          .append(ansi_up.ansi_to_html(data.content));
+      } catch (error) {
+        console.error(error)
       }
-    });
+    }
   });
-
 </script>
