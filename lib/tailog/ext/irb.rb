@@ -1,6 +1,8 @@
 require 'irb'
 
-IRB.setup nil
+IRB.init_config nil
+IRB.conf[:PROMPT_MODE] = :DEFAULT
+IRB.conf[:VERBOSE] = false
 
 def IRB.Output
   IRB.conf[:OUTPUT]
