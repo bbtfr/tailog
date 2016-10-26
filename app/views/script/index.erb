@@ -5,9 +5,9 @@
   <div class="pull-right">
     <select name="type" class="form-control" id="mode">
       <option value="ruby">Ruby</option>
-      <option value="ruby_debug">Ruby (Debug Mode)</option>
       <option value="bash">Bash</option>
     </select>
+    <button id="broadcast-button" type="submit" class="btn btn-danger">Broadcast</button>
     <button id="submit-button" type="submit" class="btn btn-primary">Submit</button>
   </div>
   <div>
@@ -35,9 +35,8 @@
     lineNumbers: true
   });
 
-  ModeMap = {
+  var ModeMap = {
     ruby: "ruby",
-    ruby_debug: "ruby",
     bash: "shell"
   };
 
@@ -45,30 +44,101 @@
     editor.setOption("mode", ModeMap[$(this).val()]);
   });
 
+  var $content = $("#content"),
+      $script = $("#script");
 
-  var $content = $("#content");
+  $("#submit-button").click(function(event) {
+    event.preventDefault();
+    editor.save();
 
-  $("#script").ajaxForm({
-    beforeSend: function() {
-      $content
-        .html("<hr/>")
-        .append('<span class="text-info">Loading...</span>')
-    },
-    error: function() {
-      $content
-        .html("<hr/>")
-        .append('<span class="text-danger">Oops! Something went wrong, please try again later!</span>')
-    },
-    success: function(json) {
-      try {
-        var data = JSON.parse(json);
+    $script.ajaxSubmit({
+      beforeSend: function() {
         $content
           .html("<hr/>")
-          .append('<span class="text-info">' + data.server_hostname + "</span>")
-          .append(ansi_up.ansi_to_html(data.content));
-      } catch (error) {
-        console.error(error)
+          .append('<span class="text-info">Loading...</span>');
+      },
+      error: function() {
+        $content
+          .html("<hr/>")
+          .append('<span class="text-danger">Oops! Something went wrong, please try again later!</span>');
+      },
+      success: function(json) {
+        try {
+          var data = JSON.parse(json);
+          $content
+            .html("<hr/>")
+            .append('<span class="text-info">' + data.server_hostname + " - " + data.process_uuid + "</span>")
+            .append(ansi_up.ansi_to_html(data.content));
+        } catch (error) {
+          console.error(error)
+        }
       }
-    }
+    });
+  });
+
+  $("#broadcast-button").click(function(event) {
+    event.preventDefault();
+    editor.save();
+
+    $content
+      .html("<hr/>")
+      .append('<div class="progress"><div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" style="width: 0%"><span class="progress-bar-indicator">0 / 1 Requests, 0 Instances (0%)</span></div></div>');
+    var $progressBar = $(".progress-bar"),
+        $indicator = $(".progress-bar-indicator");
+
+    var MaxCurrent = 10;
+    var discovered = [],
+        totalEstimate = 1,
+        currentTries = 0,
+        concurrent = 0;
+
+    var ajaxInterval = setInterval(function() {
+      if (currentTries < totalEstimate) {
+        if (concurrent < MaxCurrent) {
+          $script.ajaxSubmit({
+            data: {
+              broadcast: true,
+              discovered_instances: discovered
+            },
+            beforeSend: function() {
+              currentTries += 1;
+              concurrent += 1;
+            },
+            error: function() {
+              $content
+                .html("<hr/>")
+                .append('<span class="text-danger">Oops! Something went wrong, please try again later!</span>')
+            },
+            success: function(json) {
+              try {
+                var data = JSON.parse(json);
+
+                var instanceId = data.instance_id;
+                if (discovered.indexOf(instanceId) < 0) {
+                  totalEstimate += currentTries * 2 + 2;
+                  discovered.push(instanceId);
+
+                  $content
+                    .append('<hr/><span class="text-info">' + data.server_hostname + " - " + data.process_uuid + "</span>")
+                    .append(ansi_up.ansi_to_html(data.content));
+                }
+
+                var percent = +parseFloat(currentTries / totalEstimate * 100).toFixed(2);
+                $indicator.text(currentTries + " / " + totalEstimate + " Requests, " + discovered.length + " Instances (" + percent + "%)");
+                $progressBar.width(percent + "%");
+
+              } catch (error) {
+                console.error(error)
+              }
+            },
+            complete: function() {
+              concurrent -= 1;
+            }
+          });
+        }
+      } else {
+        clearInterval(ajaxInterval);
+      }
+    }, 100);
   });
 </script>

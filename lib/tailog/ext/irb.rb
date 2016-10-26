@@ -18,6 +18,10 @@ def IRB.evaluate_string string
   irb.eval_input
 end
 
+def IRB.irb_exit irb, ret
+  ret
+end
+
 class IRB::WorkSpace
   def evaluate(context, statements, file = __FILE__, line = __LINE__)
     @after_ruby_debug_erb = false

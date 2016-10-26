@@ -20,6 +20,10 @@ module Tailog
     def server_hostname
       @server_hostname ||= Socket.gethostname
     end
+
+    def process_uuid
+      @process_uuid ||= SecureRandom.uuid
+    end
   end
 
   self.log_path = File.expand_path("log", Dir.pwd)
@@ -62,6 +66,7 @@ module Tailog
 
       {
         server_hostname: Tailog.server_hostname,
+        process_uuid: Tailog.process_uuid,
         file_size: file_size,
         content: content
       }.to_json
@@ -76,12 +81,21 @@ module Tailog
     end
 
     post '/script' do
-      content = erb :"script/#{params[:type]}", locals: { script: params[:script] }, layout: false
-
-      {
+      result = {
         server_hostname: Tailog.server_hostname,
-        content: content
-      }.to_json
+        process_uuid: Tailog.process_uuid
+      }
+
+      ignore_content = false
+      if params[:broadcast]
+        instance_id = result[:instance_id] = params[:type] == "bash" ? Tailog.server_hostname : Tailog.process_uuid
+        discovered_instances = params[:discovered_instances] || []
+        ignore_content = true if discovered_instances.include? instance_id
+      end
+
+      result[:content] = erb :"script/#{params[:type]}", locals: { script: params[:script] }, layout: false unless ignore_content
+
+      result.to_json
     end
   end
 end
