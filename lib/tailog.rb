@@ -80,6 +80,11 @@ module Tailog
       erb :'script/index'
     end
 
+    ModeMap = {
+      "bash" => :server_hostname,
+      "ruby" => :process_uuid
+    }
+
     post '/script' do
       result = {
         server_hostname: Tailog.server_hostname,
@@ -88,7 +93,7 @@ module Tailog
 
       ignore_content = false
       if params[:broadcast]
-        instance_id = result[:instance_id] = params[:type] == "bash" ? Tailog.server_hostname : Tailog.process_uuid
+        instance_id = result[:instance_id] = result[ModeMap[params[:type]]]
         discovered_instances = params[:discovered_instances] || []
         ignore_content = true if discovered_instances.include? instance_id
       end
