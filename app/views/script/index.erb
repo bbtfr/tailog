@@ -57,7 +57,7 @@
           .html("<hr/>")
           .append('<span class="text-info">Loading...</span>');
       },
-      error: function() {
+      error: function(error) {
         $content
           .html("<hr/>")
           .append('<span class="text-danger">Oops! Something went wrong, please try again later!</span>');
@@ -70,7 +70,7 @@
             .append('<span class="text-info">' + data.server_hostname + " - " + data.process_uuid + "</span>")
             .append(ansi_up.ansi_to_html(data.content));
         } catch (error) {
-          console.error(error)
+          console.error(error);
         }
       }
     });
@@ -104,10 +104,9 @@
               currentTries += 1;
               concurrent += 1;
             },
-            error: function() {
+            error: function(error) {
               $content
-                .html("<hr/>")
-                .append('<span class="text-danger">Oops! Something went wrong, please try again later!</span>')
+                .append('<hr/><span class="text-danger">Oops! Something went wrong, but we will carry on!</span>');
             },
             success: function(json) {
               try {
@@ -128,7 +127,7 @@
                 $progressBar.width(percent + "%");
 
               } catch (error) {
-                console.error(error)
+                console.error(error);
               }
             },
             complete: function() {
