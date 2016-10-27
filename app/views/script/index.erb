@@ -136,7 +136,7 @@
             }
           });
         }
-      } else {
+      } else if (concurrent === 0) {
         clearInterval(ajaxInterval);
       }
     }, 100);
