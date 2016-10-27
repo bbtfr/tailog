@@ -10,6 +10,10 @@ p {
   margin: 0;
 }
 
+* {
+  outline: 0 !important;
+}
+
 .fixed-top-right {
   position: fixed;
   top: 25px;
@@ -59,4 +63,10 @@ p {
 
 .highlight {
   background: #FFFF88;
+}
+
+.progress-bar {
+  -webkit-transition: width .6s ease, background-color .6s ease;
+  -o-transition: width .6s ease, background-color .6s ease;
+  transition: width .6s ease, background-color .6s ease;
 }

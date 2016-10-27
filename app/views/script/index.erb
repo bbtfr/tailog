@@ -45,9 +45,12 @@
   });
 
   var $content = $("#content"),
-      $script = $("#script");
+      $script = $("#script"),
+      $submitButton = $("#submit-button"),
+      $broadcastButton = $("#broadcast-button"),
+      $buttons = $("#submit-button, #broadcast-button");
 
-  $("#submit-button").click(function(event) {
+  $submitButton.click(function(event) {
     event.preventDefault();
     editor.save();
 
@@ -56,6 +59,7 @@
         $content
           .html("<hr/>")
           .append('<span class="text-info">Loading...</span>');
+          $buttons.attr("disabled", true);
       },
       error: function() {
         $content
@@ -72,17 +76,39 @@
         } catch (error) {
           console.error(error);
         }
+      },
+      complete: function() {
+        $buttons.attr("disabled", false);
       }
     });
   });
 
-  $("#broadcast-button").click(function(event) {
+  var ajaxInterval = null;
+  $broadcastButton.click(function(event) {
     event.preventDefault();
     editor.save();
 
+    function onComplete() {
+      $submitButton.attr("disabled", false);
+      $broadcastButton.text("Broadcast");
+      clearInterval(ajaxInterval);
+      ajaxInterval = null;
+    }
+
+    if (ajaxInterval) {
+      onComplete();
+      $(".progress-bar")
+        .removeClass("progress-bar-info active")
+        .addClass("progress-bar-danger");
+      return;
+    }
+
     $content
       .html("<hr/>")
-      .append('<div class="progress"><div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" style="width: 0%"><span class="progress-bar-indicator">0 / 1 Requests, 0 Instances (0%)</span></div></div>');
+      .append('<div class="progress"><div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" style="width: 0%"><span class="progress-bar-indicator">0 / 1 Requests, 0 Instances (0%)</span></div></div>');
+    $submitButton.attr("disabled", true);
+    $broadcastButton.text("Stop broadcasting!");
+
     var $progressBar = $(".progress-bar"),
         $indicator = $(".progress-bar-indicator");
 
@@ -92,7 +118,7 @@
         currentTries = 0,
         concurrent = 0;
 
-    var ajaxInterval = setInterval(function() {
+    ajaxInterval = setInterval(function() {
       if (currentTries < totalEstimate) {
         if (concurrent < MaxCurrent) {
           $script.ajaxSubmit({
@@ -136,7 +162,10 @@
           });
         }
       } else if (concurrent === 0) {
-        clearInterval(ajaxInterval);
+        onComplete();
+        $progressBar
+          .removeClass("progress-bar-info active")
+          .addClass("progress-bar-success");
       }
     }, 100);
   });
