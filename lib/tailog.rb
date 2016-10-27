@@ -47,6 +47,15 @@ module Tailog
       erb :'logs/index'
     end
 
+    get '/logs/download' do
+      begin
+        file_path = File.join Tailog.log_path, params[:file]
+        send_file file_path
+      rescue => error
+        content = erb :error, locals: { error: error }, layout: false
+      end
+    end
+
     post '/logs' do
       begin
         file_path = File.join Tailog.log_path, params[:file]

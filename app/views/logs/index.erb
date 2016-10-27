@@ -167,6 +167,9 @@
           <tr>
             <td>
               <a href="?file=<%= relative_file %>"><%= file %></a>
+              <a href="logs/download?file=<%= relative_file %>" download>
+                <span class="glyphicon glyphicon-download-alt"></span>
+              </a>
             </td>
             <td>
               <%= stat.size.to_filesize %>
