@@ -50,7 +50,7 @@ module Tailog
     get '/logs/download' do
       begin
         file_path = File.join Tailog.log_path, params[:file]
-        send_file file_path
+        send_file file_path, filename: "#{Tailog.server_hostname}-#{params[:file]}"
       rescue => error
         content = erb :error, locals: { error: error }, layout: false
       end
