@@ -4,22 +4,30 @@ IRB.init_config nil
 IRB.conf[:PROMPT_MODE] = :DEFAULT
 IRB.conf[:VERBOSE] = false
 
-def IRB.Output
-  IRB.conf[:OUTPUT]
-end
+class << IRB
+  def Output
+    conf[:OUTPUT]
+  end
 
-def IRB.evaluate_string string
-  IRB.conf[:PROMPT_MODE] = :DEFAULT
-  IRB.conf[:VERBOSE] = false
-  IRB.conf[:OUTPUT] = []
+  def evaluate_string string
+    conf[:PROMPT_MODE] = :DEFAULT
+    conf[:VERBOSE] = false
+    conf[:OUTPUT] = []
 
-  irb = IRB::Irb.new nil, StringInputMethod.new(string + "\n")
-  IRB.conf[:MAIN_CONTEXT] = irb.context
-  irb.eval_input
-end
+    irb = Irb.new nil, StringInputMethod.new(string + "\n")
+    conf[:MAIN_CONTEXT] = irb.context
+    irb.eval_input
+  end
 
-def IRB.irb_exit irb, ret
-  ret
+  alias_method :raw_irb_exit, :irb_exit
+
+  def irb_exit irb, ret
+    if IRB.Output
+      ret
+    else
+      raw_irb_exit irb, ret
+    end
+  end
 end
 
 class IRB::WorkSpace
@@ -41,17 +49,33 @@ class IRB::WorkSpace
 end
 
 class IRB::Irb
+  alias_method :raw_output_value, :output_value
+  alias_method :raw_print, :print
+  alias_method :raw_printf, :printf
+
   def output_value
-    context = IRB.CurrentContext
-    IRB.Output << [ :stdout, context.return_format % context.inspect_last_value ]
+    if IRB.Output
+      context = IRB.CurrentContext
+      IRB.Output << [ :stdout, context.return_format % context.inspect_last_value ]
+    else
+      raw_output_value
+    end
   end
 
   def print *args
-    IRB.Output << [ :stderr, args.join, caller ]
+    if IRB.Output
+      IRB.Output << [ :stderr, args.join, caller ]
+    else
+      raw_print *args
+    end
   end
 
   def printf format, *args
-    IRB.Output << [ :stderr, format % args, caller ]
+    if IRB.Output
+      IRB.Output << [ :stderr, format % args, caller ]
+    else
+      raw_printf format, *args
+    end
   end
 end
 
