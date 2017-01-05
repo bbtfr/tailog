@@ -181,7 +181,37 @@
         <% end %>
       </tbody>
     </table>
+
+    <div class="btn-group filter-btn-group" id="filter-btn-group">
+      <a id="recent-motified" class="btn btn-default">Recent Motified</a>
+      <a id="non-blank" class="btn btn-default">Non Blank</a>
+    </div>
   <% end %>
+
+  <script type="text/javascript">
+    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+      var recentMotified = $('#recent-motified').hasClass('active');
+      var nonBlank = $('#non-blank').hasClass('active');
+
+      if (recentMotified && Date.now() - Date.parse(data[2]) > 3 * 24 * 60 * 60 * 1000) {
+        return false;
+      }
+
+      if (nonBlank && data[1] === '0.0B') {
+        return false;
+      }
+
+      return true;
+    });
+
+    $('.data-tables').on('init.dt', function() {
+      $('.dataTables_filter').prepend($('#filter-btn-group'));
+      $('#filter-btn-group a').click(function() {
+        $(this).toggleClass('active');
+        $('.data-tables').DataTable().draw();
+      });
+    });
+  </script>
 
 <% rescue => error %>
   <%= erb :error, locals: { error: error }, layout: false %>

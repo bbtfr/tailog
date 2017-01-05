@@ -38,6 +38,10 @@ p {
   right: 25px;
 }
 
+.filter-btn-group {
+  margin-right: 20px;
+}
+
 .settings-panel {
   margin-top: 50px;
   width: 320px;
