@@ -1,8 +1,6 @@
 require 'irb'
 
 IRB.init_config nil
-IRB.conf[:PROMPT_MODE] = :DEFAULT
-IRB.conf[:VERBOSE] = false
 
 class << IRB
   def Output
@@ -14,9 +12,13 @@ class << IRB
     conf[:VERBOSE] = false
     conf[:OUTPUT] = []
 
-    irb = Irb.new nil, StringInputMethod.new(string + "\n")
+    irb = IRB::Irb.new nil, StringInputMethod.new(string + "\nexit\n")
     conf[:MAIN_CONTEXT] = irb.context
     irb.eval_input
+
+    result = conf[:OUTPUT]
+    conf[:OUTPUT] = nil
+    result
   end
 
   alias_method :raw_irb_exit, :irb_exit

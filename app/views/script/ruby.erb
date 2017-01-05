@@ -1,28 +1,15 @@
 <% begin %>
-  <% irb = IRB::Irb.new nil, StringInputMethod.new(script + "\nexit\n") %>
-  <% IRB.conf[:MAIN_CONTEXT] = irb.context %>
-  <% IRB.conf[:OUTPUT] = [] %>
-
-  <% begin %>
-    <% irb.eval_input %>
-    <% IRB.Output.each do |key, line| %>
-      <% case key
-         when :stdin %>
-        <p class="text-info"><%= h line %></p>
-      <% when :stdout %>
-        <p><%= h line %></p>
-      <% when :stderr %>
-        <p class="text-danger"><%= h line %></p>
-      <% end %>
-    <% end %>
-  <% rescue => error %>
-    <p class="text-danger"><%= h error.class %>: <%= h error.message %></p>
-    <% error.backtrace.each do |backtrace| %>
-      <p class="text-danger">    <%= h backtrace %></p>
+  <% output = IRB.evaluate_string script %>
+  <% output.each do |key, line| %>
+    <% case key
+       when :stdin %>
+      <p class="text-info"><%= h line %></p>
+    <% when :stdout %>
+      <p><%= h line %></p>
+    <% when :stderr %>
+      <p class="text-danger"><%= h line %></p>
     <% end %>
   <% end %>
-
 <% rescue => error %>
   <%= erb :error, locals: { error: error }, layout: false %>
 <% end %>
-

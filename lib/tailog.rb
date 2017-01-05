@@ -4,6 +4,7 @@ require 'tailog/request_id'
 require 'tailog/watch_methods'
 require 'tailog/ext/file'
 require 'tailog/ext/integer'
+require 'tailog/ext/bash'
 require 'tailog/ext/irb'
 
 require 'sinatra/base'
